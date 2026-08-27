@@ -13,22 +13,38 @@ One skill covers every language. There is a rule pack per language, and the skil
 
 Each pack README covers installing it by hand, configuring it, every rule it carries, and an example of what each rule rejects.
 
-Both packs carry the same code smell rules under the same names. Two documents map the rules to the catalogues they come from:
+Both packs carry the same code smell rules under the same names, and they switch on differently: in Python the `smells` group runs by default, while in TypeScript you register the `slop-guard-smells` plugin, because Oxlint has no default-on concept for plugin rules. Two documents map the rules to the catalogues they come from:
 
 - [`code-smells.md`](code-smells.md) — the refactoring.guru code smells, for both languages, including the five with no rule and why.
 - [`languages/python/anti-patterns.md`](languages/python/anti-patterns.md) — The Little Book of Python Anti-Patterns, including the three entries with no rule and why.
 
 Every pack enforces the same idea: a type or a name should record evidence the program actually has. Parse values where they enter the program, name what they are, and keep that name.
 
-## Install with an agent skill
+## Install the skill
+
+The skill is a plain `SKILL.md` with a `scripts/` folder, which Claude Code, opencode, and Codex all load. One command covers all three:
 
 ```bash
 npx skills add gcuder/slop-guard
 ```
 
+[skills.sh](https://skills.sh) lists each of them as an install target and writes the files where that agent looks. To do it by hand, copy `skills/install-slop-guard/` into the directory your agent reads:
+
+| Agent | Project-local | Every project |
+| --- | --- | --- |
+| [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) | `.claude/skills/install-slop-guard/` | `~/.claude/skills/` |
+| [opencode](https://opencode.ai/docs/skills/) | `.opencode/skills/install-slop-guard/` | `~/.config/opencode/skills/` |
+| [Codex](https://learn.chatgpt.com/docs/build-skills) | `.agents/skills/install-slop-guard/` | `~/.agents/skills/` |
+
+opencode also reads `.claude/skills/`, so a Claude Code install already works there.
+
 Then ask your coding agent to install or configure slop-guard in the current repository. You do not name a language. The skill detects which languages the repository uses, vendors the matching rule packs, reads each pack's own reference for how to configure it, wires it into the checks the repository already runs, and validates the result. A repository with both TypeScript and Python gets both packs in one pass.
 
-Detection reads `skills/install-slop-guard/languages.json`: a language counts as present when a marker file such as `package.json` or `pyproject.toml` sits at the repository root, or when the tree holds at least one source file with that language's extension. You can drive the installer yourself:
+After copying a pack, the skill tells the agent to read `references/typescript.md` or `references/python.md` for that language's configuration. Agents differ in how eagerly they follow that pointer: if the configuration step comes out incomplete, name the reference file in your next message.
+
+## Install without an agent
+
+The skill's work happens in two runners with the same flags, so you can drive it yourself. Neither needs the other's runtime:
 
 ```bash
 node skills/install-slop-guard/scripts/install.mjs --detect   # what would be installed
@@ -37,7 +53,12 @@ node skills/install-slop-guard/scripts/install.mjs            # install every de
 node skills/install-slop-guard/scripts/install.mjs --language python --target tools/slop_guard
 ```
 
-There is an identical `scripts/install.py` for machines without Node, and neither runner needs the other's runtime.
+```bash
+python3 skills/install-slop-guard/scripts/install.py --detect
+python3 skills/install-slop-guard/scripts/install.py
+```
+
+Detection reads `skills/install-slop-guard/languages.json`: a language counts as present when a marker file such as `package.json` or `pyproject.toml` sits at the repository root, or when the tree holds at least one source file with that language's extension. Copying a pack is all either runner does; each pack README covers the configuration that follows.
 
 ## Repository layout
 
