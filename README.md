@@ -40,7 +40,12 @@ The easiest way is to let your AI coding assistant do it. slop-guard ships as a 
 npx skills add gcuder/slop-guard
 ```
 
-Then ask the assistant, in your own words, to set up slop-guard in your project. You do not have to say which language you use. The instructions tell it to work that out, copy the right checks, wire them into the checks your project already runs, and confirm the result.
+Then ask the assistant, in your own words. Two requests do different things:
+
+- **"Run the slop check on this repository."** It scans and reports what the rules find, changing nothing. Nothing has to be installed in the project first. Only the Python rules can run this way; the TypeScript rules need the project set up, and the assistant will say so.
+- **"Set up slop-guard in this project."** It works out which languages you use, copies the right checks in, wires them into the checks your project already runs, and confirms the result.
+
+A scan is reversible and a setup is not, so if the request could mean either, the instructions tell the assistant to scan first and offer the setup afterwards.
 
 To place the files yourself instead, copy the `skills/install-slop-guard/` folder into the directory your assistant reads:
 

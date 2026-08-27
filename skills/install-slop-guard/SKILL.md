@@ -1,13 +1,40 @@
 ---
 name: install-slop-guard
-description: Install and configure slop-guard lint rules in a local repository, in whatever languages that repository uses. Detects TypeScript, JavaScript, and Python automatically and applies the matching rule pack. Use whenever a user asks to add slop-guard, add anti-slop or anti-pattern lint rules, copy the slop-guard plugin or checker, configure opinionated lint rules, or migrate an existing local slop-guard setup.
+description: Scan a repository for slop, anti-patterns, and code smells, or install and configure the slop-guard lint rules that find them. Detects TypeScript, JavaScript, and Python automatically. Use whenever a user asks to run a slop check, scan or review code for AI slop, anti-patterns, or code smells, add slop-guard, add anti-pattern lint rules, copy the slop-guard plugin or checker, configure opinionated lint rules, or migrate an existing local slop-guard setup.
 ---
 
-# Install slop-guard
+# slop-guard
+
+Two jobs live here, and they are different requests:
+
+- **Scan** — report what the rules find, and change nothing. Follow "Scanning" below.
+- **Install** — vendor the rules into the repository and wire them into its checks. Follow "Installing" below.
+
+Read the request before choosing. "Run the slop check", "scan this repo", "what would slop-guard find here", and "review this for anti-patterns" are scans. "Add slop-guard", "set this up", and "configure the rules" are installs. When the wording could mean either, scan first and offer the install with the finding count in hand: a scan is reversible and an install is not.
+
+## Scanning
+
+A scan needs nothing in the target repository. The rules run from this skill.
+
+1. Run the bundled checker over the paths the user named, or over the repository's own source directories when they named none:
+
+   ```bash
+   python3 <skill-directory>/scripts/scan.py src
+   ```
+
+   It takes the same flags as the installed checker: `--select` and `--ignore` accept rule names and `group:<name>` tokens, `--format json` prints machine-readable findings, `--list-rules` prints every rule with its group and source, and `--exit-zero` reports without a failing exit code. It writes nothing.
+
+2. Report the findings grouped by rule, most frequent first, with the count for each and one example location. Name the rule that would silence a whole group before the user asks. Do not paste hundreds of lines; a repository seeing these rules for the first time will produce many findings, and the shape of them matters more than the list.
+
+3. State plainly what the scan did not cover:
+   - **TypeScript and JavaScript findings need an install.** Those rules are an Oxlint plugin, so they need `oxlint` in the project and a config that registers the plugin. Say so rather than reporting a clean TypeScript result that was never checked.
+   - Any path excluded by the repository's `[tool.slop-guard]` configuration, if it has one.
+
+4. Offer the next step rather than taking it: fixing findings, installing the rules so they run in CI, or narrowing the selection to one group. Do not edit files during a scan, and do not install anything.
+
+## Installing
 
 Detect which languages the current repository contains, vendor the matching rule pack for each one, and integrate each pack with the checks the repository already runs. The user does not choose a language; this skill works it out. Preserve unrelated work and adapt to the project's existing tooling.
-
-## Procedure
 
 1. Inspect the repository before changing it:
    - Read its agent instructions.
