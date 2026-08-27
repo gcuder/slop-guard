@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "exclude": [
+    ".agent",
+    ".agents",
+    ".claude",
+    ".codex",
+    ".continue",
+    ".cursor",
+    ".gemini",
+    ".git",
+    ".gradle",
+    ".mypy_cache",
+    ".next",
+    ".opencode",
+    ".pi",
+    ".roo",
+    ".ruff_cache",
+    ".svelte-kit",
+    ".tox",
+    ".venv",
+    ".windsurf",
+    "__pycache__",
+    "build",
+    "coverage",
+    "dist",
+    "node_modules",
+    "target",
+    "vendor",
+    "venv"
+  ],
+  "languages": [
+    {
+      "id": "typescript",
+      "name": "TypeScript and JavaScript",
+      "assets": "typescript",
+      "target": "tools/oxlint/slop-guard",
+      "reference": "references/typescript.md",
+      "entry": "index.ts",
+      "host": "Oxlint plugin",
+      "markers": ["package.json", "tsconfig.json", "deno.json", "oxlint.config.ts", ".oxlintrc.json"],
+      "extensions": [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"]
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "assets": "python",
+      "target": "tools/slop_guard",
+      "reference": "references/python.md",
+      "entry": "__main__.py",
+      "host": "standalone ast checker",
+      "markers": ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile", "tox.ini"],
+      "extensions": [".py", ".pyi"]
+    }
+  ]
+}

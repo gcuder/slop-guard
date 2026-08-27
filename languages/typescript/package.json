@@ -1,0 +1,28 @@
+{
+  "name": "oxlint-plugin-slop-guard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Opinionated Oxlint rules that reject low-evidence TypeScript and JavaScript patterns.",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "check": "pnpm lint && pnpm test && pnpm typecheck",
+    "lint": "oxlint src",
+    "test": "tsx src/rules/no-conditional-empty-object-spread.test.ts && tsx src/rules/no-unsafe-dictionary-type.test.ts && tsx src/rules/no-known-value-widening.test.ts && tsx src/rules/no-object-parameters.test.ts && tsx src/rules/no-runtime-typeof.test.ts && tsx src/rules/no-unknown-returns.test.ts && tsx src/rules/no-unknown-type-aliases.test.ts && tsx src/rules/no-widen-then-assert.test.ts && tsx src/rules/no-reflect-get.test.ts && tsx src/rules/no-reflect-apply.test.ts && tsx src/rules/no-module-mocking.test.ts && tsx src/rules/require-safety-comment-for-type-assertion.test.ts && tsx src/effect/rules/no-service-constructor-imports.test.ts && tsx src/smells/rules/no-commented-out-code.test.ts && tsx src/smells/rules/no-data-class.test.ts && tsx src/smells/rules/no-data-clumps.test.ts && tsx src/smells/rules/no-duplicate-code.test.ts && tsx src/smells/rules/no-feature-envy.test.ts && tsx src/smells/rules/no-inappropriate-intimacy.test.ts && tsx src/smells/rules/no-large-class.test.ts && tsx src/smells/rules/no-lazy-class.test.ts && tsx src/smells/rules/no-long-method.test.ts && tsx src/smells/rules/no-long-parameter-list.test.ts && tsx src/smells/rules/no-message-chains.test.ts && tsx src/smells/rules/no-middle-man.test.ts && tsx src/smells/rules/no-primitive-obsession.test.ts && tsx src/smells/rules/no-refused-bequest.test.ts && tsx src/smells/rules/no-temporary-field.test.ts && tsx src/smells/rules/no-type-code-switch.test.ts && tsx src/smells/rules/no-unreachable-code.test.ts && tsx src/smells/rules/no-unused-parameter.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@oxlint/plugins": "1.78.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.2.0",
+    "oxlint": "1.78.0",
+    "tsx": "4.23.12",
+    "typescript": "7.0.2"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "license": "MIT"
+}
