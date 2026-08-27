@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "slop-guard"
+version = "0.1.0"
+description = "Opinionated checks that reject low-evidence and low-signal Python patterns."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "../../LICENSE" }
+dependencies = []
+
+[project.scripts]
+slop-guard = "slop_guard.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/slop_guard"]
+
+[tool.slop-guard]
+# slop-guard walks Python's `ast`, a closed union that isinstance genuinely discriminates, and it
+# carries per-rule options straight from TOML, where the value type is open by definition. Both
+# exceptions are deliberate and local to this checker; application code should not copy them.
+ignore = [
+  "no-runtime-isinstance",
+  "no-unsafe-dictionary-type",
+  "no-object-parameters",
+  # Every rule here is a visitor over a third-party AST, so its methods read the node they are
+  # handed far more than their own object. The behaviour cannot move onto `ast.Call`.
+  "no-feature-envy",
+]
