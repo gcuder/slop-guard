@@ -19,6 +19,8 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           run_install: false
+          # `packageManager` lives with the pack, not at the repository root.
+          package_json_file: languages/typescript/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 24
