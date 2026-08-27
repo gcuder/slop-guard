@@ -1,60 +1,19 @@
-#!/usr/bin/env python3
 """Detect which languages a repository contains and vendor the matching slop-guard rules.
 
-Mirrors scripts/install.mjs; both read languages.json, so adding a language changes neither.
+Mirrors scripts/install.mjs; both read languages.json through detect.py, so adding a language
+changes neither.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import shutil
 import sys
-from dataclasses import dataclass
 from pathlib import Path
 
-SKILL_ROOT = Path(__file__).resolve().parent.parent
-REGISTRY = json.loads((SKILL_ROOT / "languages.json").read_text(encoding="utf-8"))
-FILE_LIMIT = 20000
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-
-@dataclass(frozen=True, slots=True)
-class Detection:
-    """One language the repository appears to contain."""
-
-    language: dict
-    markers: tuple[str, ...]
-    sources: int
-
-
-def source_extensions(root: Path, excluded: set[str]) -> list[str]:
-    found: list[str] = []
-    queue = [root]
-    while queue and len(found) < FILE_LIMIT:
-        directory = queue.pop(0)
-        try:
-            entries = sorted(directory.iterdir())
-        except OSError:
-            continue
-        for entry in entries:
-            if entry.is_dir():
-                if entry.name not in excluded:
-                    queue.append(entry)
-            elif len(found) < FILE_LIMIT:
-                found.append(entry.suffix)
-    return found
-
-
-def detect(root: Path) -> list[Detection]:
-    excluded = set(REGISTRY["exclude"])
-    extensions = source_extensions(root, excluded)
-    results: list[Detection] = []
-    for language in REGISTRY["languages"]:
-        markers = tuple(name for name in language["markers"] if (root / name).exists())
-        sources = sum(1 for suffix in extensions if suffix in language["extensions"])
-        if markers or sources:
-            results.append(Detection(language=language, markers=markers, sources=sources))
-    return sorted(results, key=lambda result: result.sources, reverse=True)
+from detect import REGISTRY, SKILL_ROOT, Detection, detect, language  # noqa: E402 - needs the path above
 
 
 def check_destination(language: dict, target: Path, force: bool) -> None:
@@ -101,12 +60,11 @@ def main() -> int:
 
     chosen = detect(root)
     if arguments.language:
-        matches = [item for item in REGISTRY["languages"] if item["id"] == arguments.language]
-        if not matches:
-            known = ", ".join(item["id"] for item in REGISTRY["languages"])
-            print(f"Unknown language {arguments.language}. This skill supports: {known}.", file=sys.stderr)
+        try:
+            chosen = [Detection(language=language(arguments.language), markers=(), sources=0)]
+        except KeyError as error:
+            print(str(error), file=sys.stderr)
             return 1
-        chosen = [Detection(language=matches[0], markers=(), sources=0)]
 
     if not chosen:
         print("No supported language detected. Run with --list to see what this skill covers.", file=sys.stderr)

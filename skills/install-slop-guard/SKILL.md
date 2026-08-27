@@ -14,23 +14,27 @@ Read the request before choosing. "Run the slop check", "scan this repo", "what 
 
 ## Scanning
 
-A scan needs nothing in the target repository. The rules run from this skill.
+A scan needs nothing in the target repository. The rules run from this skill, and both languages are covered.
 
-1. Run the bundled checker over the paths the user named, or over the repository's own source directories when they named none:
+1. Run the scanner from the repository you are checking, with whichever runtime the machine has:
 
    ```bash
+   node <skill-directory>/scripts/scan.mjs src
+   # or
    python3 <skill-directory>/scripts/scan.py src
    ```
 
-   It takes the same flags as the installed checker: `--select` and `--ignore` accept rule names and `group:<name>` tokens, `--format json` prints machine-readable findings, `--list-rules` prints every rule with its group and source, and `--exit-zero` reports without a failing exit code. It writes nothing.
+   Either runner scans every language it detects and hands the one it cannot run itself to the other runtime, so both cover TypeScript, JavaScript, and Python. Pass paths to narrow the scan; with none it scans the working directory. `--language typescript` or `--language python` restricts it to one pack.
+
+   The Python rules run immediately. The TypeScript rules are an Oxlint plugin, so the first scan on a machine installs the linter into `~/.cache/slop-guard/` and reuses it afterwards: that first run needs `npm` and network access, and later runs need neither. `--offline` skips the preparation and reports TypeScript as not scanned rather than reaching for the network.
+
+   Flags the Python checker understands pass straight through: `--select` and `--ignore` take rule names and `group:<name>` tokens, `--format json` prints machine-readable findings, and `--list-rules` prints every rule with its group and source.
 
 2. Report the findings grouped by rule, most frequent first, with the count for each and one example location. Name the rule that would silence a whole group before the user asks. Do not paste hundreds of lines; a repository seeing these rules for the first time will produce many findings, and the shape of them matters more than the list.
 
-3. State plainly what the scan did not cover:
-   - **TypeScript and JavaScript findings need an install.** Those rules are an Oxlint plugin, so they need `oxlint` in the project and a config that registers the plugin. Say so rather than reporting a clean TypeScript result that was never checked.
-   - Any path excluded by the repository's `[tool.slop-guard]` configuration, if it has one.
+3. State plainly what the scan did not cover: any language the runner reported as unscanned, and any path excluded by the repository's `[tool.slop-guard]` configuration. Never report a clean result for a language that was never checked.
 
-4. Offer the next step rather than taking it: fixing findings, installing the rules so they run in CI, or narrowing the selection to one group. Do not edit files during a scan, and do not install anything.
+4. Offer the next step rather than taking it: fixing findings, installing the rules so they run in CI, or narrowing the selection to one group. Do not edit files during a scan, and do not install anything into the repository.
 
 ## Installing
 

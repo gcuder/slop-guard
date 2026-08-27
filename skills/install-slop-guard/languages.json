@@ -38,8 +38,45 @@
       "reference": "references/typescript.md",
       "entry": "index.ts",
       "host": "Oxlint plugin",
-      "markers": ["package.json", "tsconfig.json", "deno.json", "oxlint.config.ts", ".oxlintrc.json"],
-      "extensions": [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"]
+      "markers": [
+        "package.json",
+        "tsconfig.json",
+        "deno.json",
+        "oxlint.config.ts",
+        ".oxlintrc.json"
+      ],
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".mts",
+        ".cts",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs"
+      ],
+      "scan": {
+        "runtime": "node",
+        "packages": {
+          "oxlint": "1.78.0",
+          "@oxlint/plugins": "1.78.0"
+        },
+        "plugins": [
+          {
+            "name": "slop-guard",
+            "entry": "index.ts"
+          },
+          {
+            "name": "slop-guard-smells",
+            "entry": "smells/index.ts"
+          },
+          {
+            "name": "slop-guard-effect",
+            "entry": "effect/index.ts",
+            "requires": "effect"
+          }
+        ]
+      }
     },
     {
       "id": "python",
@@ -49,8 +86,21 @@
       "reference": "references/python.md",
       "entry": "__main__.py",
       "host": "standalone ast checker",
-      "markers": ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile", "tox.ini"],
-      "extensions": [".py", ".pyi"]
+      "markers": [
+        "pyproject.toml",
+        "setup.py",
+        "setup.cfg",
+        "requirements.txt",
+        "Pipfile",
+        "tox.ini"
+      ],
+      "extensions": [
+        ".py",
+        ".pyi"
+      ],
+      "scan": {
+        "runtime": "python3"
+      }
     }
   ]
 }

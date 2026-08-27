@@ -30,6 +30,25 @@ function files(directory, bundle) {
   });
 }
 
+// The scanner installs its own copy of the linter, pinned in languages.json. Those pins have to
+// match what the pack itself builds against, or a scan and a local run disagree.
+function checkScanPins() {
+  const registry = JSON.parse(readFileSync(join(root, "skills/install-slop-guard/languages.json"), "utf8"));
+  const manifest = JSON.parse(readFileSync(join(root, "languages/typescript/package.json"), "utf8"));
+  const pinned = registry.languages.find((entry) => entry.id === "typescript")?.scan?.packages ?? {};
+  const declared = { ...manifest.dependencies, ...manifest.devDependencies };
+  for (const [name, version] of Object.entries(pinned)) {
+    if (declared[name] !== version) {
+      throw new Error(
+        `languages.json pins ${name}@${version} for scanning, but languages/typescript/package.json declares ${declared[name] ?? "nothing"}.`,
+      );
+    }
+  }
+  console.log("Scan pins match the TypeScript pack.");
+}
+
+checkScanPins();
+
 for (const bundle of bundles) {
   const label = relative(root, bundle.destination);
   if (check) {

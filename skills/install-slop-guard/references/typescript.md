@@ -8,6 +8,9 @@ Identify the package manager from `packageManager` and lockfiles. Find the Oxlin
 
 ## 2. Install dependencies
 
+To look without installing, `scripts/scan.mjs` in this skill runs these rules against a repository using a cached copy of the linter under `~/.cache/slop-guard/`, and writes nothing into the project. Installing is what follows below.
+
+
 Install current compatible versions rather than trusting versions remembered by the agent:
 
 - Query `npm view oxlint version` and `npm view @oxlint/plugins version`.

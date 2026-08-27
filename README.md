@@ -42,7 +42,7 @@ npx skills add gcuder/slop-guard
 
 Then ask the assistant, in your own words. Two requests do different things:
 
-- **"Run the slop check on this repository."** It scans and reports what the rules find, changing nothing. Nothing has to be installed in the project first. Only the Python rules can run this way; the TypeScript rules need the project set up, and the assistant will say so.
+- **"Run the slop check on this repository."** It scans and reports what the rules find, changing nothing. Nothing has to be installed in the project first, and both languages are covered. The first TypeScript scan on a machine downloads the linter into `~/.cache/slop-guard/`; after that it works offline.
 - **"Set up slop-guard in this project."** It works out which languages you use, copies the right checks in, wires them into the checks your project already runs, and confirms the result.
 
 A scan is reversible and a setup is not, so if the request could mean either, the instructions tell the assistant to scan first and offer the setup afterwards.
@@ -59,9 +59,18 @@ opencode also reads `.claude/skills/`, so a Claude Code install already works th
 
 One caveat: after copying the checks, the instructions point the assistant at a setup guide for that language. Assistants differ in how reliably they follow that pointer. If the setup looks half-finished, name the guide in your next message — `references/python.md` or `references/typescript.md`.
 
-## Installing it without an assistant
+## Doing it without an assistant
 
-The copying is done by two small scripts that take the same options. Run whichever one your machine can:
+To scan, run either script from the project you want checked. Each one covers every language it finds:
+
+```bash
+node skills/install-slop-guard/scripts/scan.mjs src
+python3 skills/install-slop-guard/scripts/scan.py src
+```
+
+They report and change nothing. Add `--language python` or `--language typescript` to check just one, and `--offline` to skip the one-time linter download.
+
+To install, the copying is done by two more scripts that take the same options. Run whichever one your machine can:
 
 ```bash
 node skills/install-slop-guard/scripts/install.mjs --detect   # say what it would install

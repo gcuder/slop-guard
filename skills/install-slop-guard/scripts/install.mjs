@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 // Detect which languages a repository contains and vendor the matching slop-guard rules.
-// Mirrors scripts/install.py; both read languages.json, so adding a language changes neither.
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
-import { dirname, extname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+// Mirrors scripts/install.py; both read languages.json through detect.mjs, so adding a language
+// changes neither.
+import { cpSync, existsSync, mkdirSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 
-const skillRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const registry = JSON.parse(readFileSync(join(skillRoot, "languages.json"), "utf8"));
-const FILE_LIMIT = 20000;
+import { detect, language as lookup, registry, skillRoot } from "./detect.mjs";
 
 function parseArguments(argv) {
   const options = { language: null, target: null, force: false, mode: "install", json: false };
@@ -23,41 +21,6 @@ function parseArguments(argv) {
     else options.target = argument;
   }
   return options;
-}
-
-function sourceFiles(root, excluded) {
-  const found = [];
-  const queue = [root];
-  while (queue.length > 0 && found.length < FILE_LIMIT) {
-    const directory = queue.shift();
-    let entries;
-    try {
-      entries = readdirSync(directory, { withFileTypes: true });
-    } catch {
-      continue;
-    }
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        if (!excluded.has(entry.name)) queue.push(join(directory, entry.name));
-      } else if (found.length < FILE_LIMIT) {
-        found.push(extname(entry.name));
-      }
-    }
-  }
-  return found;
-}
-
-function detect(root) {
-  const excluded = new Set(registry.exclude);
-  const extensions = sourceFiles(root, excluded);
-  return registry.languages
-    .map((language) => {
-      const markers = language.markers.filter((marker) => existsSync(join(root, marker)));
-      const sources = extensions.filter((extension) => language.extensions.includes(extension)).length;
-      return { language, markers, sources, detected: markers.length > 0 || sources > 0 };
-    })
-    .filter((result) => result.detected)
-    .sort((left, right) => right.sources - left.sources);
 }
 
 function checkDestination(language, target, force) {
@@ -90,12 +53,7 @@ function main() {
 
   let chosen = detect(root);
   if (options.language) {
-    const language = registry.languages.find((entry) => entry.id === options.language);
-    if (!language) {
-      const known = registry.languages.map((entry) => entry.id).join(", ");
-      throw new Error(`Unknown language ${options.language}. This skill supports: ${known}.`);
-    }
-    chosen = [{ language, markers: [], sources: 0, detected: true }];
+    chosen = [{ language: lookup(options.language), markers: [], sources: 0, detected: true }];
   }
 
   if (chosen.length === 0) {

@@ -10,6 +10,9 @@ Identify how checks run today: `pyproject.toml` scripts, a `Makefile`, `tox.ini`
 
 ## 2. Confirm the checker runs
 
+To look without installing, `scripts/scan.py` in this skill runs these rules from the skill's own copy and writes nothing. Installing is what follows below.
+
+
 ```bash
 python3 -m tools.slop_guard --list-rules
 python3 -m tools.slop_guard src
