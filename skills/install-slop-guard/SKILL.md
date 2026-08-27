@@ -72,9 +72,17 @@ Detect which languages the current repository contains, vendor the matching rule
 
    Read only the references for the languages you installed. Do not apply one language's configuration advice to another.
 
-5. Run the repository's own checks for each language after configuring it. If findings appear in owned project source, report them and fix them only when the user asked for migration or cleanup. Never silence a rule, weaken its severity, add an unchecked cast or assertion, or launder a type to make a check pass.
+5. Make the checks run without anyone remembering to run them. A check that only runs when someone asks stops running. Work outward from what the repository already has, and never introduce a new tool to hold a hook:
 
-6. Review the final diff and clearly report, per language:
+   - **The repository's own check command comes first.** Add the rules to the lint step in its `Makefile`, `package.json` scripts, `tox.ini`, `noxfile.py`, or task runner, and to the CI job that already runs lint. CI is the layer nobody can skip, so it is the one that must be wired.
+   - **If the repository already manages git hooks** — a `.pre-commit-config.yaml`, `.husky/`, `lefthook.yml`, `simple-git-hooks` in `package.json`, or a `core.hooksPath` setting — add a slop-guard entry there. That configuration is committed, so every clone gets it.
+   - **If it manages no hooks, ask before adding one.** A hook written straight into `.git/hooks/` is not committed and not shared, so it silently covers one person's clone and nobody else's. Say that, and let the user decide between adding a hook manager, taking the local-only hook, or relying on CI.
+
+   Whichever layers you set up, check staged or changed files rather than the whole repository, and say which layers now run the rules and who each one covers.
+
+6. Run the repository's own checks for each language after configuring it. If findings appear in owned project source, report them and fix them only when the user asked for migration or cleanup. Never silence a rule, weaken its severity, add an unchecked cast or assertion, or launder a type to make a check pass.
+
+7. Review the final diff and clearly report, per language:
    - copied path,
    - dependencies installed, if any,
    - configuration changed,

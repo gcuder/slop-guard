@@ -43,7 +43,7 @@ npx skills add gcuder/slop-guard
 Then ask the assistant, in your own words. Two requests do different things:
 
 - **"Run the slop check on this repository."** It scans and reports what the rules find, changing nothing. Nothing has to be installed in the project first, and both languages are covered. The first TypeScript scan on a machine downloads the linter into `~/.cache/slop-guard/`; after that it works offline.
-- **"Set up slop-guard in this project."** It works out which languages you use, copies the right checks in, wires them into the checks your project already runs, and confirms the result.
+- **"Set up slop-guard in this project."** It works out which languages you use, copies the right checks in, wires them into the checks your project already runs, and confirms the result. That wiring includes a commit hook when your project already manages one, so the checks run without anyone remembering to run them. It will not install a hook tool you do not already use; it asks first.
 
 A scan is reversible and a setup is not, so if the request could mean either, the instructions tell the assistant to scan first and offer the setup afterwards.
 

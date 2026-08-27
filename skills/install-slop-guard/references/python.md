@@ -55,9 +55,24 @@ terms = ["shape", "helper", "manager"]
 
 Use whichever mechanism the repository already has, and do not introduce a new task runner:
 
-- With pre-commit, add a `repo: local` hook with `language: system` and `entry: python3 -m tools.slop_guard`.
 - With a Makefile, tox, or nox, add a `slop-guard` step next to the lint step.
 - In CI, add it to the job that already runs lint, before the test step.
+- With pre-commit, add a `repo: local` hook that checks the staged files:
+
+  ```yaml
+  - repo: local
+    hooks:
+      - id: slop-guard
+        name: slop-guard
+        language: system
+        types: [python]
+        entry: python3 -m tools.slop_guard
+  ```
+
+  pre-commit passes the staged filenames as arguments, so the checker looks at what is about to be committed rather than the whole tree.
+
+- With husky, lefthook, or `simple-git-hooks`, add the same command to the pre-commit stage that configuration already defines.
+- If the repository manages no git hooks at all, do not add one silently. A hook written into `.git/hooks/` is not committed, so it covers one clone and nobody else's. Say so, and let the user choose between adopting a hook manager, taking the local-only hook, or relying on CI.
 
 The checker exits `1` when it reports a finding, so it needs no wrapper. `--format json` prints machine-readable findings, `--select` and `--ignore` take comma-separated rule names, and `--exit-zero` reports without failing the build.
 

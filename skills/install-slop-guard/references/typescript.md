@@ -122,7 +122,15 @@ rules: {
 
 Each threshold rule takes an options object: `maxStatements` (20), `maxParameters` (4), `maxMethods` and `maxFields` (10), `maxSameType` (2), `minGroup` (3), `minBranches` (3), `minStatements` (3), `minAccesses` (5), `maxLinks` (3), `minMethods` (2). Read the repository's existing limits before accepting the defaults, and set the numbers to what the team already agrees on. Report the finding count per rule before the user commits to a threshold.
 
-## 7. Validate
+## 7. Wire it into the existing checks
+
+Use whichever mechanism the repository already has, and do not introduce a new task runner:
+
+- Add `oxlint` to the `lint` script the repository already defines, and to the CI job that runs it.
+- With husky, add the command to `.husky/pre-commit`. With lefthook, add a `pre-commit` command with `glob: "*.{ts,tsx,js,jsx}"` and `run: npx oxlint {staged_files}`. With `lint-staged`, add an `oxlint` entry for those extensions. Each of these passes the staged files, so the hook checks what is about to be committed rather than the whole tree.
+- If the repository manages no git hooks at all, do not add one silently. A hook written into `.git/hooks/` is not committed, so it covers one clone and nobody else's. Say so, and let the user choose between adopting a hook manager, taking the local-only hook, or relying on CI.
+
+## 8. Validate
 
 Run the repository's lint command and typecheck. For Vite+, run the repository's full `vp check` command after adding both lint and format ignores.
 
