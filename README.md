@@ -1,36 +1,50 @@
 # slop-guard
 
-Opinionated lint rules that reject low-evidence and low-signal code in TypeScript, JavaScript, and Python.
+slop-guard reads your code and points out the places where it quietly hides a guess.
 
-This project is meant to be vendored, not treated as a fixed dependency. Copy the rules into your repository, read them, and change them to match your team's standards. The bundled agent skill handles the initial copy and configuration; after that, the vendored files are yours to maintain and make your own.
+It is a **linter**: a program that reads code and reports problems, the way a spellchecker reads a document. Your editor probably runs one already. slop-guard adds a set of checks that ordinary linters do not make.
 
-One skill covers every language. There is a rule pack per language, and the skill works out which ones a repository needs:
+## The problem it catches
 
-| Pack | What it is | Rules | Reference |
-| --- | --- | --- | --- |
-| **TypeScript and JavaScript** | an Oxlint plugin, plus two opt-in plugins | 15 generic, 1 Effect, 18 code smells | [languages/typescript/README.md](languages/typescript/README.md) |
-| **Python** | a standalone `ast` checker with no third-party dependencies, running alongside Ruff, mypy, or pyright | 75 in seven groups | [languages/python/README.md](languages/python/README.md) |
+Code often says less than it could. A programmer, or an AI assistant writing code quickly, will label a piece of data "anything" rather than "a customer", because "anything" always compiles and never complains. Later, someone reads that line and cannot tell what is actually in there. The program still runs, so nothing warns anybody, and the guess sits in the code until it causes a bug.
 
-Each pack README covers installing it by hand, configuring it, every rule it carries, and an example of what each rule rejects.
+slop-guard's rules look for exactly that shape:
 
-Both packs carry the same code smell rules under the same names, and they switch on differently: in Python the `smells` group runs by default, while in TypeScript you register the `slop-guard-smells` plugin, because Oxlint has no default-on concept for plugin rules. Two documents map the rules to the catalogues they come from:
+- A function that accepts "anything" instead of naming what it needs.
+- A claim that a value is a customer, with nothing in the code that ever checked.
+- A name like `data` or `shape` that describes nothing about the thing it holds.
+- A test that fakes the surrounding program, so it proves less than it appears to.
 
-- [`code-smells.md`](code-smells.md) — the refactoring.guru code smells, for both languages, including the five with no rule and why.
-- [`languages/python/anti-patterns.md`](languages/python/anti-patterns.md) — The Little Book of Python Anti-Patterns, including the three entries with no rule and why.
+It also reports **code smells** — a well-known catalogue of shapes that make code harder to change, such as a function that has grown too long to follow, a list of parameters nobody can keep straight, or the same block of code copied into two places.
 
-Every pack enforces the same idea: a type or a name should record evidence the program actually has. Parse values where they enter the program, name what they are, and keep that name.
+Every report says what the code fails to prove and what to do instead. None of them suggests turning the rule off.
 
-## Install the skill
+## What you get
 
-The skill is a plain `SKILL.md` with a `scripts/` folder, which Claude Code, opencode, and Codex all load. One command covers all three:
+Two sets of checks, one per language:
+
+| Language | Checks | Details |
+| --- | --- | --- |
+| TypeScript and JavaScript | 34 rules | [languages/typescript/README.md](languages/typescript/README.md) |
+| Python | 75 rules | [languages/python/README.md](languages/python/README.md) |
+
+Both carry the same code smell rules, under the same names. The two pages above list every rule with an example of the code it rejects.
+
+The rules become yours once installed. slop-guard copies them into your project rather than adding a dependency you cannot see, so you can read them, change the limits, and delete the ones your team disagrees with. Nothing phones home, and nothing updates behind your back.
+
+## Installing it
+
+The easiest way is to let your AI coding assistant do it. slop-guard ships as a **skill**: a set of written instructions an assistant can follow. One command adds it to Claude Code, opencode, or Codex:
 
 ```bash
 npx skills add gcuder/slop-guard
 ```
 
-[skills.sh](https://skills.sh) lists each of them as an install target and writes the files where that agent looks. To do it by hand, copy `skills/install-slop-guard/` into the directory your agent reads:
+Then ask the assistant, in your own words, to set up slop-guard in your project. You do not have to say which language you use. The instructions tell it to work that out, copy the right checks, wire them into the checks your project already runs, and confirm the result.
 
-| Agent | Project-local | Every project |
+To place the files yourself instead, copy the `skills/install-slop-guard/` folder into the directory your assistant reads:
+
+| Assistant | Just this project | Every project |
 | --- | --- | --- |
 | [Claude Code](https://docs.claude.com/en/docs/claude-code/skills) | `.claude/skills/install-slop-guard/` | `~/.claude/skills/` |
 | [opencode](https://opencode.ai/docs/skills/) | `.opencode/skills/install-slop-guard/` | `~/.config/opencode/skills/` |
@@ -38,19 +52,15 @@ npx skills add gcuder/slop-guard
 
 opencode also reads `.claude/skills/`, so a Claude Code install already works there.
 
-Then ask your coding agent to install or configure slop-guard in the current repository. You do not name a language. The skill detects which languages the repository uses, vendors the matching rule packs, reads each pack's own reference for how to configure it, wires it into the checks the repository already runs, and validates the result. A repository with both TypeScript and Python gets both packs in one pass.
+One caveat: after copying the checks, the instructions point the assistant at a setup guide for that language. Assistants differ in how reliably they follow that pointer. If the setup looks half-finished, name the guide in your next message — `references/python.md` or `references/typescript.md`.
 
-After copying a pack, the skill tells the agent to read `references/typescript.md` or `references/python.md` for that language's configuration. Agents differ in how eagerly they follow that pointer: if the configuration step comes out incomplete, name the reference file in your next message.
+## Installing it without an assistant
 
-## Install without an agent
-
-The skill's work happens in two runners with the same flags, so you can drive it yourself. Neither needs the other's runtime:
+The copying is done by two small scripts that take the same options. Run whichever one your machine can:
 
 ```bash
-node skills/install-slop-guard/scripts/install.mjs --detect   # what would be installed
-node skills/install-slop-guard/scripts/install.mjs --list     # every supported language
-node skills/install-slop-guard/scripts/install.mjs            # install every detected pack
-node skills/install-slop-guard/scripts/install.mjs --language python --target tools/slop_guard
+node skills/install-slop-guard/scripts/install.mjs --detect   # say what it would install
+node skills/install-slop-guard/scripts/install.mjs            # install it
 ```
 
 ```bash
@@ -58,20 +68,33 @@ python3 skills/install-slop-guard/scripts/install.py --detect
 python3 skills/install-slop-guard/scripts/install.py
 ```
 
-Detection reads `skills/install-slop-guard/languages.json`: a language counts as present when a marker file such as `package.json` or `pyproject.toml` sits at the repository root, or when the tree holds at least one source file with that language's extension. Copying a pack is all either runner does; each pack README covers the configuration that follows.
+`--detect` looks for the signs of each language: a project file such as `package.json` or `pyproject.toml`, or any source file of that language. It reports what it found and changes nothing. Copying the files is all these scripts do; the setup that follows is on each language's page, linked in the table above.
 
-## Repository layout
+## Where the rules come from
+
+Some rules are slop-guard's own position on writing code that records what it knows. The rest come from two published catalogues, and two documents record which rule covers which entry, including the entries with no rule and the reason why:
+
+- [`code-smells.md`](code-smells.md) — the [refactoring.guru code smells](https://refactoring.guru/refactoring/smells), for both languages. Five of the twenty-two have no rule: some can only be spotted from a project's history, and some need a judgement no program can make.
+- [`languages/python/anti-patterns.md`](languages/python/anti-patterns.md) — [The Little Book of Python Anti-Patterns](https://docs.quantifiedcode.com/python-anti-patterns/index.html). Three entries have no rule: two describe Python 2, which this checker does not support, and one describes a mistake Python itself refuses to run.
+
+Where a catalogue's advice has aged badly, the rule says so rather than repeating it.
+
+---
+
+## For contributors
+
+### Repository layout
 
 ```
 languages/
-  python/          canonical Python checker: src/, tests/, pyproject.toml, check.sh, README.md
-  typescript/      canonical Oxlint plugin: src/, tsconfig.json, package.json, check.sh, README.md
+  python/          the Python checker: src/, tests/, pyproject.toml, check.sh, README.md
+  typescript/      the Oxlint plugin: src/, tsconfig.json, package.json, check.sh, README.md
 code-smells.md     the refactoring.guru catalogue, mapped to rules in both languages
 scripts/
   check.mjs        runs every languages/*/check.sh, then verifies the skill's copies
   sync-skill-assets.mjs
 skills/install-slop-guard/
-  SKILL.md                      detect, then follow the reference for each detected language
+  SKILL.md                      detect, then follow the guide for each detected language
   languages.json                markers, extensions, asset directory, and target path per language
   scripts/install.mjs           Node runner
   scripts/install.py            Python runner, same flags and same registry
@@ -82,13 +105,9 @@ skills/install-slop-guard/
   assets/python/                synced copy of languages/python/src/slop_guard/
 ```
 
-Each pack documents itself: [languages/typescript/README.md](languages/typescript/README.md) and [languages/python/README.md](languages/python/README.md) carry the install steps, configuration, rule list, and examples for their language, and [languages/python/anti-patterns.md](languages/python/anti-patterns.md) sits with the pack whose catalogue it maps.
+Each language pack owns its own source, tests, tooling configuration, and `check.sh`. Nothing at the repository root is specific to one language: `scripts/check.mjs` discovers packs by looking for `languages/*/check.sh`, and the skill's two installer runners read `languages.json` rather than hard-coding any language. The directory name under `languages/` is the language id, and it matches the `assets` directory the skill installs from; keep those two names the same.
 
-Each language pack owns its own source, tests, tooling configuration, and `check.sh`. Nothing at the repository root is specific to one language: `scripts/check.mjs` discovers packs by looking for `languages/*/check.sh`, and the skill's two installer runners read `languages.json` rather than hard-coding any language.
-
-The directory name under `languages/` is the language id, and it matches the `assets` directory the skill installs from. Keep those two names the same.
-
-## Development
+### Development
 
 Run everything:
 
@@ -107,10 +126,9 @@ The Python pack needs no installation step. `languages/typescript/src/` and `lan
 
 The Python checker disables four of its own rules on its own source, and `languages/python/pyproject.toml` records why for each: it walks Python's `ast`, a closed union that `isinstance` genuinely discriminates and whose nodes its methods necessarily read more than their own object, and it carries per-rule options straight from TOML, where the value type is open by definition. Application code should not copy those exemptions.
 
-## Adding a language
+### Adding a language
 
 Adding a language is data plus files, never a change to either runner or to `scripts/check.mjs`: create `languages/<id>/` with the rules, their tests, and a `check.sh`; add a bundle to `scripts/sync-skill-assets.mjs`; add an entry to `languages.json`; write `references/<id>.md`; and add a CI job. `skills/install-slop-guard/references/adding-a-language.md` covers each step and the conventions a new pack should keep.
-
 
 ## License
 
